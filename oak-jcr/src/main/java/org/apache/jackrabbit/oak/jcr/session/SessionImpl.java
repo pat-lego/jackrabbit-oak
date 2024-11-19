@@ -24,6 +24,8 @@ import static org.apache.jackrabbit.oak.commons.PathUtils.getParentPath;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.AccessControlException;
 import java.util.Collections;
 import java.util.Set;
@@ -92,6 +94,14 @@ public class SessionImpl implements JackrabbitSession {
         this.sessionCounter = sessionContext.getCount(SESSION_COUNT);
         sessionCounter.inc();
         sessionContext.getMeter(Type.SESSION_LOGIN_COUNTER).mark();
+
+        if (log.isTraceEnabled()) {
+            log.trace("Created SessionImpl with userID {}, the id is session-{}", sessionContext.getSessionDelegate().getAuthInfo().getUserID(), this.sessionCounter.getCount());
+            Exception e = new Exception("The SessionImpl was opened here");
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.trace(sw.toString());
+        }
     }
 
     static void checkIndexOnName(String jcrPath) throws RepositoryException {

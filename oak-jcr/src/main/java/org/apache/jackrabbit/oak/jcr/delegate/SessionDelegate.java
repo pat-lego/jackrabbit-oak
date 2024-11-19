@@ -27,6 +27,8 @@ import static org.apache.jackrabbit.api.stats.RepositoryStatistics.Type.SESSION_
 import static org.apache.jackrabbit.oak.commons.PathUtils.denotesRoot;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -153,6 +155,14 @@ public class SessionDelegate {
         readDuration = statisticManager.getTimer(SESSION_READ_DURATION);
         writeCounter = statisticManager.getMeter(SESSION_WRITE_COUNTER);
         writeDuration = statisticManager.getTimer(SESSION_WRITE_DURATION);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Created ContentSession with userID {}, the id is {}", contentSession.getAuthInfo().getUserID(), contentSession.toString());
+            Exception e = new Exception("The ContentSession was opened here");
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.trace(sw.toString());
+        }
     }
 
     @NotNull
