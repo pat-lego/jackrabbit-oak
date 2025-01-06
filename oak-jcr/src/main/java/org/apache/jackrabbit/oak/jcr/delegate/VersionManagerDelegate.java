@@ -42,6 +42,9 @@ import static org.apache.jackrabbit.JcrConstants.JCR_UUID;
 import static org.apache.jackrabbit.JcrConstants.JCR_VERSIONHISTORY;
 import static org.apache.jackrabbit.oak.spi.version.VersionConstants.RESTORE_PREFIX;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * {@code VersionManagerDelegate}...
  */
@@ -50,6 +53,8 @@ public final class VersionManagerDelegate {
     private final SessionDelegate sessionDelegate;
 
     private final ReadWriteVersionManager versionManager;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public static VersionManagerDelegate create(SessionDelegate sessionDelegate) {
         return new VersionManagerDelegate(sessionDelegate);
@@ -136,6 +141,7 @@ public final class VersionManagerDelegate {
                 JCR_FROZENUUID).getPropertyState();
         PropertyDelegate mixinTypes = frozen.getPropertyOrNull(JCR_FROZENMIXINTYPES);
         if (parent.getChild(oakName) == null) {
+            logger.debug("About to restore node {} with frozen node at path {} and ID {}", parent.getChild(oakName).getPath(), vd.getFrozenNode().getPath(), vd.getIdentifier());
             // create a sentinel node with a jcr:baseVersion pointing
             // to the version to restore
             Tree t = parent.getTree().addChild(oakName);
@@ -149,6 +155,7 @@ public final class VersionManagerDelegate {
             t.setProperty(JCR_BASEVERSION, vd.getIdentifier(), Type.REFERENCE);
             t.setProperty(JCR_VERSIONHISTORY, vd.getParent().getIdentifier(), Type.REFERENCE);
         } else {
+            logger.debug("About to restore node {} with frozen node at path {} and ID {}",  parent.getChild(oakName).getTree().getPath(), vd.getFrozenNode().getPath(), vd.getIdentifier());
             Tree t = parent.getChild(oakName).getTree();
             t.setProperty(JCR_BASEVERSION, RESTORE_PREFIX + vd.getIdentifier(), Type.REFERENCE);
         }
