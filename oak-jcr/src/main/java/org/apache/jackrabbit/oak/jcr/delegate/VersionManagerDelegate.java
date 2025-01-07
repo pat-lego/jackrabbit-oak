@@ -42,6 +42,9 @@ import static org.apache.jackrabbit.JcrConstants.JCR_UUID;
 import static org.apache.jackrabbit.JcrConstants.JCR_VERSIONHISTORY;
 import static org.apache.jackrabbit.oak.spi.version.VersionConstants.RESTORE_PREFIX;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +144,7 @@ public final class VersionManagerDelegate {
                 JCR_FROZENUUID).getPropertyState();
         PropertyDelegate mixinTypes = frozen.getPropertyOrNull(JCR_FROZENMIXINTYPES);
         if (parent.getChild(oakName) == null) {
-            logger.debug("About to restore node {} with frozen node at path {} and ID {}", parent.getChild(oakName).getPath(), vd.getFrozenNode().getPath(), vd.getIdentifier());
+            logMessage("About to restore node " + parent.getChild(oakName).getPath() + " with frozen node at path " + vd.getFrozenNode().getPath() + " and ID " + vd.getIdentifier(), new Exception("Called Restore on non-existing node"));
             // create a sentinel node with a jcr:baseVersion pointing
             // to the version to restore
             Tree t = parent.getTree().addChild(oakName);
@@ -155,7 +158,7 @@ public final class VersionManagerDelegate {
             t.setProperty(JCR_BASEVERSION, vd.getIdentifier(), Type.REFERENCE);
             t.setProperty(JCR_VERSIONHISTORY, vd.getParent().getIdentifier(), Type.REFERENCE);
         } else {
-            logger.debug("About to restore node {} with frozen node at path {} and ID {}",  parent.getChild(oakName).getTree().getPath(), vd.getFrozenNode().getPath(), vd.getIdentifier());
+            logMessage("About to restore node " +  parent.getChild(oakName).getTree().getPath() + " with frozen node at path " + vd.getFrozenNode().getPath() + " and ID " + vd.getIdentifier(), new Exception("Called Restore on existing node"));
             Tree t = parent.getChild(oakName).getTree();
             t.setProperty(JCR_BASEVERSION, RESTORE_PREFIX + vd.getIdentifier(), Type.REFERENCE);
         }
@@ -248,4 +251,19 @@ public final class VersionManagerDelegate {
         return requireNonNull(nodeDelegate).getTree();
     }
 
+
+    private void logMessage(String message , Exception exception) {
+        try {
+            if (logger.isDebugEnabled()) {
+                StringWriter writer = new StringWriter();
+                exception.printStackTrace(new PrintWriter(writer));
+                logger.debug(writer.toString());
+                logger.debug(message);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to log message", e);
+        }
+        
+
+    }
 }
